@@ -27,9 +27,10 @@ Your final app should:
 ### Setup
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+Run the broken app: python -m streamlit run app.py
 ```
 
 ### Suggested workflow
