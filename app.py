@@ -97,17 +97,25 @@ st.caption("Add a few tasks. In your final version, these should feed into your 
 if "tasks" not in st.session_state:
     st.session_state.tasks = []
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     task_title = st.text_input("Task title", value="Morning walk")
 with col2:
     duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
 with col3:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+with col4:
+    pet_options = [pet.name for pet in st.session_state.owner.pets] if st.session_state.owner.pets else ["No pets"]
+    selected_pet = st.selectbox("Pet", pet_options)
 
 if st.button("Add task"):
     st.session_state.tasks.append(
-        {"title": task_title, "duration_minutes": int(duration), "priority": priority}
+        {
+            "title": task_title,
+            "duration_minutes": int(duration),
+            "priority": priority,
+            "pet": selected_pet,
+        }
     )
 
 if st.session_state.tasks:
