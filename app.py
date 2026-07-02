@@ -4,7 +4,9 @@ from models import Owner, Pet
 
 
 if "owner" not in st.session_state:
-    st.session_state.owner = Owner()
+    initial_pet = Pet(name="CoCo", species="cat")
+    st.session_state.owner = Owner(name="Carol")
+    st.session_state.owner.add_pet(initial_pet)
 
 if "pet" not in st.session_state:
     st.session_state.pet = Pet()
@@ -53,6 +55,11 @@ owner_name = st.text_input(
     value=st.session_state.owner.name,
     key="owner_name_input",
 )
+
+if st.button("Save owner profile"):
+    st.session_state.owner.name = owner_name
+    st.success("Owner profile saved!")
+
 pet_name = st.text_input(
     "Pet name",
     value=st.session_state.pet.name,
@@ -67,14 +74,22 @@ species = st.selectbox(
     key="species_input",
 )
 
-if st.button("Save profile"):
-    st.session_state.owner = Owner(owner_name)
-    st.session_state.pet = Pet(pet_name, species)
-    st.success("Profile saved!")
+if st.button("Add pet to owner"):
+    if pet_name.strip():
+        st.session_state.owner.add_pet(Pet(pet_name, species))
+        st.session_state.pet = Pet(name="", species="dog")
+        st.success("Pet added to owner!")
+    else:
+        st.warning("Please enter a pet name.")
 
 st.caption("Current saved profile")
 st.write(f"Owner: {st.session_state.owner.name}")
-st.write(f"Pet: {st.session_state.pet.name} ({st.session_state.pet.species})")
+if st.session_state.owner.pets:
+    st.write("Pets:")
+    for index, pet in enumerate(st.session_state.owner.pets, start=1):
+        st.write(f"{index}. {pet.name} ({pet.species})")
+else:
+    st.write("No pets added yet.")
 
 st.markdown("### Tasks")
 st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
