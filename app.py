@@ -1,5 +1,14 @@
 import streamlit as st
 
+from models import Owner, Pet
+
+
+if "owner" not in st.session_state:
+    st.session_state.owner = Owner()
+
+if "pet" not in st.session_state:
+    st.session_state.pet = Pet()
+
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
@@ -39,9 +48,33 @@ At minimum, your system should:
 st.divider()
 
 st.subheader("Quick Demo Inputs (UI only)")
-owner_name = st.text_input("Owner name", value="Jordan")
-pet_name = st.text_input("Pet name", value="Mochi")
-species = st.selectbox("Species", ["dog", "cat", "other"])
+owner_name = st.text_input(
+    "Owner name",
+    value=st.session_state.owner.name,
+    key="owner_name_input",
+)
+pet_name = st.text_input(
+    "Pet name",
+    value=st.session_state.pet.name,
+    key="pet_name_input",
+)
+species_options = ["dog", "cat", "other"]
+species_index = species_options.index(st.session_state.pet.species) if st.session_state.pet.species in species_options else 0
+species = st.selectbox(
+    "Species",
+    species_options,
+    index=species_index,
+    key="species_input",
+)
+
+if st.button("Save profile"):
+    st.session_state.owner = Owner(owner_name)
+    st.session_state.pet = Pet(pet_name, species)
+    st.success("Profile saved!")
+
+st.caption("Current saved profile")
+st.write(f"Owner: {st.session_state.owner.name}")
+st.write(f"Pet: {st.session_state.pet.name} ({st.session_state.pet.species})")
 
 st.markdown("### Tasks")
 st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
