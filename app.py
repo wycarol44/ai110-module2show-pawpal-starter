@@ -121,6 +121,21 @@ if st.button("Add task"):
 if st.session_state.tasks:
     st.write("Current tasks:")
     st.table(st.session_state.tasks)
+
+    delete_labels = [
+        f"{i + 1}. {task['title']} ({task['pet']})"
+        for i, task in enumerate(st.session_state.tasks)
+    ]
+    delete_index = st.selectbox(
+        "Select task to delete",
+        range(len(delete_labels)),
+        format_func=lambda i: delete_labels[i],
+        key="delete_task_select",
+    )
+    if st.button("🗑️ Delete selected task", key="delete_task_button"):
+        deleted = st.session_state.tasks.pop(delete_index)
+        st.success(f"Deleted task: {deleted['title']}")
+        st.experimental_rerun()
 else:
     st.info("No tasks yet. Add one above.")
 
