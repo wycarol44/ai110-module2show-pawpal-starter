@@ -109,21 +109,35 @@ with col4:
     selected_pet = st.selectbox("Pet", pet_options)
 
 if st.button("Add task"):
-    st.session_state.tasks.append(
-        {
-            "title": task_title,
-            "duration_minutes": int(duration),
-            "priority": priority,
-            "pet": selected_pet,
-        }
-    )
+    pet_lookup = {pet.name: pet for pet in st.session_state.owner.pets}
+    selected_pet_obj = pet_lookup.get(selected_pet)
+    if selected_pet_obj is None:
+        st.warning("Please choose a valid pet.")
+    else:
+        st.session_state.tasks.append(
+            {
+                "title": task_title,
+                "duration_minutes": int(duration),
+                "priority": priority,
+                "pet": selected_pet_obj,
+                "pet_id": selected_pet_obj.pet_id,
+            }
+        )
 
 if st.session_state.tasks:
     st.write("Current tasks:")
-    st.table(st.session_state.tasks)
+    st.table(
+        [
+            {
+                **task,
+                "pet": task.get("pet").name if isinstance(task.get("pet"), Pet) else task.get("pet"),
+            }
+            for task in st.session_state.tasks
+        ]
+    )
 
     delete_labels = [
-        f"{i + 1}. {task['title']} ({task['pet']})"
+        f"{i + 1}. {task['title']} ({task.get('pet').name if isinstance(task.get('pet'), Pet) else task.get('pet')})"
         for i, task in enumerate(st.session_state.tasks)
     ]
     delete_index = st.selectbox(
@@ -163,5 +177,7 @@ if st.button("Generate schedule"):
                     f"- {entry['start']}–{entry['end']}: **{entry['title']}** | "
                     f"Pet: **{pet_name}** | Priority: **{priority_name}**"
                 )
+                if entry.get("explanation"):
+                    st.caption(entry["explanation"])
         else:
             st.warning("Unable to generate a schedule.")
