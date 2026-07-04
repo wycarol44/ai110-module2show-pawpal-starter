@@ -1,6 +1,6 @@
 import streamlit as st
 
-from models import Owner, Pet
+from models import Owner, Pet, Scheduler
 
 
 if "owner" not in st.session_state:
@@ -145,15 +145,23 @@ st.subheader("Build Schedule")
 st.caption("This button should call your scheduling logic once you implement it.")
 
 if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+    if not st.session_state.tasks:
+        st.warning("No tasks available to schedule.")
+    else:
+        schedule = Scheduler.schedule_tasks(
+            st.session_state.tasks,
+            st.session_state.owner.pets,
+            start_hour=8,
+            start_minute=0,
+        )
+        if schedule:
+            st.success("Schedule generated")
+            for entry in schedule:
+                pet_name = entry.get("pet") or "Unassigned"
+                priority_name = (entry.get("priority") or "medium").capitalize()
+                st.markdown(
+                    f"- {entry['start']}–{entry['end']}: **{entry['title']}** | "
+                    f"Pet: **{pet_name}** | Priority: **{priority_name}**"
+                )
+        else:
+            st.warning("Unable to generate a schedule.")
