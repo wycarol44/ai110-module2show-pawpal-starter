@@ -1,6 +1,6 @@
 import streamlit as st
 
-from models import Owner, Pet, Scheduler
+from pawpal_system import Owner, Pet, Scheduler
 
 
 if "owner" not in st.session_state:
