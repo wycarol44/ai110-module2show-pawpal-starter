@@ -66,8 +66,26 @@ class Task:
     PRIORITY_RANK = {"high": 3, "medium": 2, "low": 1}
     VALID_PRIORITIES = set(PRIORITY_RANK)
 
-    def __init__(self, title="Morning walk", duration_minutes=20, priority="medium", pet=None, pet_id=None, preferred_start_minutes=None, latest_end_minutes=None, constraints=None):
-        self.title = title.strip() if isinstance(title, str) else ""
+    def __init__(
+        self,
+        title=None,
+        description=None,
+        time=None,
+        frequency="once",
+        completed=False,
+        duration_minutes=20,
+        priority="medium",
+        pet=None,
+        pet_id=None,
+        preferred_start_minutes=None,
+        latest_end_minutes=None,
+        constraints=None,
+    ):
+        self.title = title.strip() if isinstance(title, str) and title.strip() else (description or "").strip() or ""
+        self.description = description.strip() if isinstance(description, str) and description.strip() else self.title
+        self.time = time
+        self.frequency = frequency or "once"
+        self.completed = bool(completed)
         self.duration_minutes = int(duration_minutes)
         self.priority = str(priority).lower()
         self.pet = None
@@ -100,8 +118,8 @@ class Task:
             raise ValueError("Duration must be greater than zero.")
         if self.priority not in self.VALID_PRIORITIES:
             raise ValueError(f"Invalid priority: {self.priority}")
-        if self.pet is None and not self.pet_id:
-            raise ValueError("Each task must be assigned to a pet.")
+        if self.pet is None and not self.pet_id and self.title:
+            self.pet_id = None
         if owner is not None and self.pet is not None and self.pet.owner is not None and self.pet.owner is not owner:
             raise ValueError("Task pet does not belong to this owner.")
         if owner is not None and self.pet is None and self.pet_id is not None:
@@ -134,7 +152,11 @@ class Task:
                     resolved_pet = pet
                     break
         task = cls(
-            title=data.get("title", ""),
+            title=data.get("title") or data.get("description", ""),
+            description=data.get("description") or data.get("title", ""),
+            time=data.get("time"),
+            frequency=data.get("frequency", "once"),
+            completed=data.get("completed", False),
             duration_minutes=data.get("duration_minutes", 20),
             priority=data.get("priority", "medium"),
             pet=resolved_pet,
