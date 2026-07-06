@@ -1,94 +1,84 @@
-# PawPal+ (Module 2 Project)
+# PawPal+ — Pet Care Scheduling Assistant
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+PawPal+ is a Python-based pet care planning assistant that helps owners organize daily routines for their pets. The project combines a lightweight object model for owners, pets, and tasks with a scheduler that orders activities by priority, time, and pet-specific considerations.
 
-## Scenario
+## Overview
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+A busy pet owner often needs help staying consistent with daily care tasks such as walks, feeding, playtime, and grooming. PawPal+ provides a simple way to:
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+- store owner and pet information
+- create and manage pet care tasks
+- sort tasks by time
+- filter tasks by completion status or pet name
+- generate a sample daily schedule from the available tasks
+- support recurring daily and weekly tasks
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+## Project Structure
 
-## What you will build
+- pawpal_system.py: core classes for Owner, Pet, Task, and Scheduler
+- app.py: Streamlit-based user interface for interacting with the system
+- main.py: command-line demonstration that prints a sample schedule
+- tests/: regression tests for core scheduling behavior
 
-Your final app should:
-
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
-
-## Getting started
+## Getting Started
 
 ### Setup
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Suggested workflow
+### Run the app
 
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
+```bash
+python -m streamlit run app.py
+```
+
+### Run the sample scheduler
+
+```bash
+python main.py
+```
 
 ## 🖥️ Sample Output
 
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
+Verified terminal output from running the sample scheduler script:
 
-```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+```text
+Today's Schedule
+====================
+Sorted by time:
+- 08:00 Morning walk (Max)
+- 08:30 Feed breakfast (CoCo)
+- 16:00 Playtime (Max)
+
+Incomplete tasks for CoCo:
+- 08:30 Feed breakfast
+
+Scheduled plan:
+08:00–08:20 Morning walk | Pet: Max | Priority: High
+  Reason: priority high; pet fairness count 1
+08:20–08:30 Feed breakfast | Pet: CoCo | Priority: Medium
+  Reason: priority medium; pet fairness count 1
+08:30–08:45 Playtime | Pet: Max | Priority: Low
+  Reason: priority low; pet fairness count 2
 ```
 
-## 🧪 Testing PawPal+
+## 🧪 Testing
+
+Run the test suite with:
 
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+pytest -q tests/test_pawpal.py
 ```
 
-Sample test output:
+## Features Implemented
 
-```
-# Paste your pytest output here
-```
-
-## 📐 Smarter Scheduling
-
-> Fill in once you've implemented scheduling logic.
-
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
-
-## 📸 Demo Walkthrough
-
-Describe your app in numbered steps so a reader can follow along without watching a video:
-
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
-
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+- task creation with description, time, frequency, and completion state
+- owner-to-pet relationships
+- task sorting by time
+- filtering by completion status and pet name
+- recurring daily and weekly task handling
+- explainable scheduling output for each planned task

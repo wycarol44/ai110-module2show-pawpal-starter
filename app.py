@@ -1,5 +1,16 @@
 import streamlit as st
 
+from pawpal_system import Owner, Pet, Scheduler
+
+
+if "owner" not in st.session_state:
+    initial_pet = Pet(name="CoCo", species="cat")
+    st.session_state.owner = Owner(name="Carol")
+    st.session_state.owner.add_pet(initial_pet)
+
+if "pet" not in st.session_state:
+    st.session_state.pet = Pet()
+
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
@@ -39,9 +50,46 @@ At minimum, your system should:
 st.divider()
 
 st.subheader("Quick Demo Inputs (UI only)")
-owner_name = st.text_input("Owner name", value="Jordan")
-pet_name = st.text_input("Pet name", value="Mochi")
-species = st.selectbox("Species", ["dog", "cat", "other"])
+owner_name = st.text_input(
+    "Owner name",
+    value=st.session_state.owner.name,
+    key="owner_name_input",
+)
+
+if st.button("Save owner profile"):
+    st.session_state.owner.name = owner_name
+    st.success("Owner profile saved!")
+
+pet_name = st.text_input(
+    "Pet name",
+    value=st.session_state.pet.name,
+    key="pet_name_input",
+)
+species_options = ["dog", "cat", "other"]
+species_index = species_options.index(st.session_state.pet.species) if st.session_state.pet.species in species_options else 0
+species = st.selectbox(
+    "Species",
+    species_options,
+    index=species_index,
+    key="species_input",
+)
+
+if st.button("Add pet to owner"):
+    if pet_name.strip():
+        st.session_state.owner.add_pet(Pet(pet_name, species))
+        st.session_state.pet = Pet(name="", species="dog")
+        st.success("Pet added to owner!")
+    else:
+        st.warning("Please enter a pet name.")
+
+st.caption("Current saved profile")
+st.write(f"Owner: {st.session_state.owner.name}")
+if st.session_state.owner.pets:
+    st.write("Pets:")
+    for index, pet in enumerate(st.session_state.owner.pets, start=1):
+        st.write(f"{index}. {pet.name} ({pet.species})")
+else:
+    st.write("No pets added yet.")
 
 st.markdown("### Tasks")
 st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
@@ -49,22 +97,59 @@ st.caption("Add a few tasks. In your final version, these should feed into your 
 if "tasks" not in st.session_state:
     st.session_state.tasks = []
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     task_title = st.text_input("Task title", value="Morning walk")
 with col2:
     duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
 with col3:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+with col4:
+    pet_options = [pet.name for pet in st.session_state.owner.pets] if st.session_state.owner.pets else ["No pets"]
+    selected_pet = st.selectbox("Pet", pet_options)
 
 if st.button("Add task"):
-    st.session_state.tasks.append(
-        {"title": task_title, "duration_minutes": int(duration), "priority": priority}
-    )
+    pet_lookup = {pet.name: pet for pet in st.session_state.owner.pets}
+    selected_pet_obj = pet_lookup.get(selected_pet)
+    if selected_pet_obj is None:
+        st.warning("Please choose a valid pet.")
+    else:
+        st.session_state.tasks.append(
+            {
+                "title": task_title,
+                "duration_minutes": int(duration),
+                "priority": priority,
+                "pet": selected_pet_obj,
+                "pet_id": selected_pet_obj.pet_id,
+            }
+        )
 
 if st.session_state.tasks:
     st.write("Current tasks:")
-    st.table(st.session_state.tasks)
+    st.table(
+        [
+            {
+                **task,
+                "pet": task.get("pet").name if isinstance(task.get("pet"), Pet) else task.get("pet"),
+            }
+            for task in st.session_state.tasks
+        ]
+    )
+
+    delete_labels = [
+        f"{i + 1}. {task['title']} ({task.get('pet').name if isinstance(task.get('pet'), Pet) else task.get('pet')})"
+        for i, task in enumerate(st.session_state.tasks)
+    ]
+    delete_index = st.selectbox(
+        "Select task to delete",
+        range(len(delete_labels)),
+        format_func=lambda i: delete_labels[i],
+        key="delete_task_select",
+    )
+    if st.button("🗑️ Delete selected task", key="delete_task_button"):
+        deleted = st.session_state.tasks.pop(delete_index)
+        st.success(f"Deleted task: {deleted['title']}")
+        st.experimental_rerun()
 else:
     st.info("No tasks yet. Add one above.")
 
@@ -74,15 +159,25 @@ st.subheader("Build Schedule")
 st.caption("This button should call your scheduling logic once you implement it.")
 
 if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+    if not st.session_state.tasks:
+        st.warning("No tasks available to schedule.")
+    else:
+        schedule = Scheduler.schedule_tasks(
+            st.session_state.tasks,
+            st.session_state.owner.pets,
+            start_hour=8,
+            start_minute=0,
+        )
+        if schedule:
+            st.success("Schedule generated")
+            for entry in schedule:
+                pet_name = entry.get("pet") or "Unassigned"
+                priority_name = (entry.get("priority") or "medium").capitalize()
+                st.markdown(
+                    f"- {entry['start']}–{entry['end']}: **{entry['title']}** | "
+                    f"Pet: **{pet_name}** | Priority: **{priority_name}**"
+                )
+                if entry.get("explanation"):
+                    st.caption(entry["explanation"])
+        else:
+            st.warning("Unable to generate a schedule.")
